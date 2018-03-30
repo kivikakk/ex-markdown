@@ -1,6 +1,6 @@
-defmodule Comrak.Html do
+defmodule Comrak.Render do
   alias Comrak.Native
-  alias Comrak.Html.Renderer
+  alias Comrak.Renderer
 
   defmodule Context do
     defstruct output: "", footnote_ix: 0, data: nil, renderer: Renderer
@@ -8,14 +8,6 @@ defmodule Comrak.Html do
 
   def render({_node, _children} = root, renderer \\ Renderer, data \\ %{}) do
     context = render_node(%Context{data: data, renderer: renderer}, root)
-
-    context =
-      if context.footnote_ix > 0 do
-        write(context, "</ol></section>")
-      else
-        context
-      end
-
     context.output
   end
 

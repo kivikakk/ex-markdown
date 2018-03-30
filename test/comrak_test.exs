@@ -3,20 +3,19 @@ defmodule ComrakTest do
   doctest Comrak
 
   defmodule TestRenderer do
-    use Comrak.Html.Base
+    use Comrak.Renderer
 
     def block_code(_data, code, lang) do
       "<pre><code class=\"#{lang}\">#{HtmlEntities.encode(code)}</code></pre>"
     end
   end
 
-  def html(text, output, renderer \\ Comrak.Html.Renderer) do
-    ast = Comrak.Native.parse(text)
-    assert Comrak.Html.render(ast, renderer) == output
+  def html(text, output, renderer \\ Comrak.HtmlRenderer) do
+    assert Comrak.render(text, renderer) == output
   end
 
   test "parse markdown into ast" do
-    assert Comrak.Native.parse("Hello, world!") ==
+    assert Comrak.parse("Hello, world!") ==
              {%Comrak.Native.Document{},
               [
                 {%Comrak.Native.Paragraph{}, [{%Comrak.Native.Text{text: "Hello, world!"}, []}]}
