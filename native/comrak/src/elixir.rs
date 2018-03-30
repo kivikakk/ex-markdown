@@ -191,7 +191,21 @@ pub fn parse<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>
     let text: &'a str = try!(args[0].decode());
 
     let arena = Arena::new();
-    let root = parse_document(&arena, text, &ComrakOptions::default());
+    let options = ComrakOptions {
+        hardbreaks: true,
+        github_pre_lang: true,
+        width: 0,
+        default_info_string: None,
+        ext_strikethrough: true,
+        ext_tagfilter: true,
+        ext_table: true,
+        ext_autolink: true,
+        ext_tasklist: true,
+        ext_superscript: true,
+        ext_header_ids: None,
+        ext_footnotes: true,
+    };
+    let root = parse_document(&arena, text, &options);
 
     Ok(encode_ast_node(env, root))
 }
