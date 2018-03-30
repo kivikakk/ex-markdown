@@ -1,0 +1,16 @@
+[package]
+name = "comrak"
+version = "0.1.0"
+authors = ["HansiHE <hansihe@hansihe.com>"]
+
+[lib]
+name = "comrak"
+path = "src/lib.rs"
+crate-type = ["dylib"]
+
+[dependencies]
+lazy_static = "1.0"
+rustler = "0.16"
+rustler_codegen = "0.16"
+comrak = "0.2"
+typed-arena = "1.3"

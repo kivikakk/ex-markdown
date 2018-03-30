@@ -1,0 +1,4 @@
+%{
+  "html_entities": {:hex, :html_entities, "0.4.0", "f2fee876858cf6aaa9db608820a3209e45a087c5177332799592142b50e89a6b", [:mix], [], "hexpm"},
+  "rustler": {:hex, :rustler, "0.16.0", "9b04237d2e7b30fcae40a28edb56f59aad8f4e3c8790f4996b5f200f649964be", [:mix], [], "hexpm"},
+}
