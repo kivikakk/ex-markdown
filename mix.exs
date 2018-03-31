@@ -40,7 +40,8 @@ defmodule Markdown.MixProject do
   defp deps do
     [
       {:html_entities, "~> 0.4"},
-      {:rustler, "~> 0.16"}
+      {:rustler, "~> 0.16"},
+      {:ex_doc, ">= 0.0.0", only: :dev}
     ]
   end
 
