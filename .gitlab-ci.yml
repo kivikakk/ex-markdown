@@ -1,7 +1,7 @@
 image: trenpixster/elixir:latest
 
 before_script:
-  - curl https://sh.rustup.rs -sSf | sh -y
+  - curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
   - rustup default stable
   - mix local.hex --force
   - mix deps.get --only test
