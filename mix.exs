@@ -4,7 +4,7 @@ defmodule Markdown.MixProject do
   def project do
     [
       app: :markdown,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.4",
       package: package(),
       start_permanent: Mix.env() == :prod,
@@ -29,7 +29,7 @@ defmodule Markdown.MixProject do
 
   defp package() do
     [
-      files: ["lib", "mix.exs", "README.md", "LICENSE"],
+      files: ["lib", "native", "mix.exs", "README.md", "LICENSE"],
       maintainers: ["Nathan Faucett"],
       licenses: ["MIT"],
       links: %{"Gitlab" => "https://gitlab.com/nathanfaucett/ex-markdown"}
