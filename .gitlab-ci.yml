@@ -1,10 +1,13 @@
 image: trenpixster/elixir:latest
 
 before_script:
-  - curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
+  - curl -sSf sh.rustup.rs | sh -s -- -y
+  - echo "export PATH=~/.cargo/bin:$PATH" >> ~/.bashrc
+  - . ~/.bashrc
   - rustup default stable
   - mix local.hex --force
   - mix deps.get --only test
+
 mix:
   script:
   - mix test
