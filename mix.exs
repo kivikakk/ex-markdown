@@ -1,9 +1,9 @@
-defmodule Comrak.MixProject do
+defmodule Markdown.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :comrak,
+      app: :markdown,
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,

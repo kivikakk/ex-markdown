@@ -1,6 +1,6 @@
-defmodule Comrak.Render do
-  alias Comrak.Native
-  alias Comrak.Renderer
+defmodule Markdown.Render do
+  alias Markdown.Native
+  alias Markdown.Renderer
 
   defmodule Context do
     defstruct output: "", footnote_ix: 0, data: nil, renderer: Renderer
@@ -13,7 +13,6 @@ defmodule Comrak.Render do
 
   defp clear(%Context{} = context) do
     context
-    |> Map.put(:footnote_ix, 0)
     |> Map.put(:output, "")
   end
 
@@ -130,9 +129,8 @@ defmodule Comrak.Render do
         tmp = render_children_as_text(clear(context), children)
         write(context, context.renderer.image(context.data, link.url, link.title, tmp.output))
 
-      %Native.Table{alignments: _alignments} ->
-        # TODO: speciel render for tables
-        context
+      %Native.Table{alignments: alignments} ->
+        render_table_node(context, alignments, children)
 
       %Native.TableRow{header: _header} ->
         context
@@ -151,6 +149,74 @@ defmodule Comrak.Render do
 
       %Native.FootnoteReference{name: name} ->
         write(context, context.renderer.footnote_ref(context.data, name))
+
+      _ ->
+        context
     end
+  end
+
+  defp render_table_node(%Context{} = context, alignments, children) do
+    {header_context, body_context} =
+      Enum.reduce(children, {clear(context), clear(context)}, fn {child_node, child_children},
+                                                                 {header_context, body_context} ->
+        case child_node do
+          %Native.TableRow{header: header} ->
+            if header do
+              header_context =
+                render_table_row_node(
+                  clear(context),
+                  alignments,
+                  child_children,
+                  header
+                )
+
+              {header_context, body_context}
+            else
+              body_context =
+                render_table_row_node(
+                  clear(context),
+                  alignments,
+                  child_children,
+                  header
+                )
+
+              {header_context, body_context}
+            end
+
+          _ ->
+            context
+        end
+      end)
+
+    write(
+      context,
+      context.renderer.table(context.data, header_context.output, body_context.output)
+    )
+  end
+
+  defp render_table_row_node(%Context{} = context, alignments, children, header) do
+    tmp =
+      Enum.reduce(Enum.with_index(children), clear(context), fn {{child_node, child_children},
+                                                                 index},
+                                                                context ->
+        case child_node do
+          %Native.TableCell{} ->
+            alignment = Enum.at(alignments, index, "")
+            tmp = render_children_as_text(clear(context), child_children)
+
+            write(
+              context,
+              context.renderer.table_cell(context.data, tmp.output, alignment, header)
+            )
+
+          _ ->
+            context
+        end
+      end)
+
+    write(
+      context,
+      context.renderer.table_row(context.data, tmp.output)
+    )
   end
 end

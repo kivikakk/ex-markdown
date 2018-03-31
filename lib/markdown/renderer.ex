@@ -1,4 +1,4 @@
-defmodule Comrak.Renderer do
+defmodule Markdown.Renderer do
   defmacro __using__(_params) do
     quote do
       def block_code(_data, code, lang) do
@@ -19,6 +19,10 @@ defmodule Comrak.Renderer do
 
       def footnote_def(_data, content, number) do
         "<li id=\"fn#{number}\">&nbsp;<a href=\"#fnref#{number}\">&#8617;</a>#{content}</li>"
+      end
+
+      def footnote_ref(_data, number) do
+        "<sup id=\"fnref#{number}\"><a href=\"#fn#{number}\">#{number}</a></sup>"
       end
 
       def header(_data, text, header_level) do
@@ -53,8 +57,26 @@ defmodule Comrak.Renderer do
         "<tr>#{content}</tr>"
       end
 
-      def table_cell(_data, content, alignment) do
-        "<td style=\"text-align: #{alignment}\">>#{content}</td>"
+      def table_cell(_data, content, alignment, header) do
+        cell =
+          if header do
+            "<th"
+          else
+            "<td"
+          end
+
+        cell =
+          if alignment != "" do
+            "#{cell} style=\"text-align: #{alignment};\">#{content}"
+          else
+            "#{cell}>#{content}"
+          end
+
+        if header do
+          "#{cell}</th>"
+        else
+          "#{cell}</td>"
+        end
       end
 
       def autolink(_data, url, link_type) do
@@ -144,10 +166,6 @@ defmodule Comrak.Renderer do
         "<q>#{text}</q>"
       end
 
-      def footnote_ref(_data, number) do
-        "<sup id=\"fnref#{number}\"><a href=\"#fn#{number}\">#{number}</a></sup>"
-      end
-
       defoverridable block_code: 3,
                      block_html: 2,
                      block_quote: 2,
@@ -160,7 +178,7 @@ defmodule Comrak.Renderer do
                      paragraph: 2,
                      table: 3,
                      table_row: 2,
-                     table_cell: 3,
+                     table_cell: 4,
                      autolink: 3,
                      codespan: 2,
                      double_emphasis: 2,

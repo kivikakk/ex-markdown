@@ -1,5 +1,5 @@
-defmodule Comrak.Native do
-  use Rustler, otp_app: :comrak, crate: "comrak"
+defmodule Markdown.Native do
+  use Rustler, otp_app: :markdown, crate: "comrak"
 
   defmodule NodeList do
     defstruct list_type: "",

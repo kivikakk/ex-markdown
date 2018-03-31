@@ -4,7 +4,7 @@ use rustler::{NifEncoder, NifEnv, NifResult, NifTerm};
 use typed_arena::Arena;
 
 rustler_export_nifs! {
-    "Elixir.Comrak.Native",
+    "Elixir.Markdown.Native",
     [("parse", 1, parse)],
     None
 }
@@ -18,23 +18,23 @@ macro_rules! nifs_structs {
 }
 
 nifs_structs! {
-    "Comrak.Native.NodeList" pub struct NodeList {
+    "Markdown.Native.NodeList" pub struct NodeList {
         pub list_type: String,
         pub start: usize,
         pub delimiter: String,
         pub bullet_char: String,
         pub tight: bool,
     }
-    "Comrak.Native.NodeCodeBlock" pub struct NodeCodeBlock {
+    "Markdown.Native.NodeCodeBlock" pub struct NodeCodeBlock {
         pub fenced: bool,
         pub fence_char: String,
         pub fence_length: usize,
         pub info: String,
         pub literal: String,
     }
-    "Comrak.Native.NodeHtmlBlock" pub struct NodeHtmlBlock { pub literal: String }
-    "Comrak.Native.NodeHeading" pub struct NodeHeading { pub level: u32, pub setext: bool }
-    "Comrak.Native.NodeLink" pub struct NodeLink { pub url: String, pub title: String }
+    "Markdown.Native.NodeHtmlBlock" pub struct NodeHtmlBlock { pub literal: String }
+    "Markdown.Native.NodeHeading" pub struct NodeHeading { pub level: u32, pub setext: bool }
+    "Markdown.Native.NodeLink" pub struct NodeLink { pub url: String, pub title: String }
 }
 
 impl<'a> From<&'a nodes::NodeList> for NodeList {
@@ -99,31 +99,31 @@ impl<'a> From<&'a nodes::NodeLink> for NodeLink {
 }
 
 nifs_structs! {
-    "Comrak.Native.Document" pub struct Document;
-    "Comrak.Native.BlockQuote" pub struct BlockQuote;
-    "Comrak.Native.List" pub struct List { pub list: NodeList }
-    "Comrak.Native.Item" pub struct Item { pub list: NodeList }
-    "Comrak.Native.CodeBlock" pub struct CodeBlock { pub block: NodeCodeBlock }
-    "Comrak.Native.HtmlBlock" pub struct HtmlBlock { pub block: NodeHtmlBlock }
-    "Comrak.Native.Paragraph" pub struct Paragraph;
-    "Comrak.Native.Heading" pub struct Heading { pub heading: NodeHeading }
-    "Comrak.Native.ThematicBreak" pub struct ThematicBreak;
-    "Comrak.Native.FootnoteDefinition" pub struct FootnoteDefinition { pub name: String }
-    "Comrak.Native.Table" pub struct Table { pub alignments: Vec<String> }
-    "Comrak.Native.TableRow" pub struct TableRow { pub header: bool }
-    "Comrak.Native.TableCell" pub struct TableCell;
-    "Comrak.Native.Text" pub struct Text { pub text: String }
-    "Comrak.Native.SoftBreak" pub struct SoftBreak;
-    "Comrak.Native.LineBreak" pub struct LineBreak;
-    "Comrak.Native.Code" pub struct Code { pub code: String }
-    "Comrak.Native.HtmlInline" pub struct HtmlInline { pub html: String }
-    "Comrak.Native.Emph" pub struct Emph;
-    "Comrak.Native.Strong" pub struct Strong;
-    "Comrak.Native.Strikethrough" pub struct Strikethrough;
-    "Comrak.Native.Superscript" pub struct Superscript;
-    "Comrak.Native.Link" pub struct Link { pub link: NodeLink }
-    "Comrak.Native.Image" pub struct Image { pub link: NodeLink }
-    "Comrak.Native.FootnoteReference" pub struct FootnoteReference { pub name: String }
+    "Markdown.Native.Document" pub struct Document;
+    "Markdown.Native.BlockQuote" pub struct BlockQuote;
+    "Markdown.Native.List" pub struct List { pub list: NodeList }
+    "Markdown.Native.Item" pub struct Item { pub list: NodeList }
+    "Markdown.Native.CodeBlock" pub struct CodeBlock { pub block: NodeCodeBlock }
+    "Markdown.Native.HtmlBlock" pub struct HtmlBlock { pub block: NodeHtmlBlock }
+    "Markdown.Native.Paragraph" pub struct Paragraph;
+    "Markdown.Native.Heading" pub struct Heading { pub heading: NodeHeading }
+    "Markdown.Native.ThematicBreak" pub struct ThematicBreak;
+    "Markdown.Native.FootnoteDefinition" pub struct FootnoteDefinition { pub name: String }
+    "Markdown.Native.Table" pub struct Table { pub alignments: Vec<String> }
+    "Markdown.Native.TableRow" pub struct TableRow { pub header: bool }
+    "Markdown.Native.TableCell" pub struct TableCell;
+    "Markdown.Native.Text" pub struct Text { pub text: String }
+    "Markdown.Native.SoftBreak" pub struct SoftBreak;
+    "Markdown.Native.LineBreak" pub struct LineBreak;
+    "Markdown.Native.Code" pub struct Code { pub code: String }
+    "Markdown.Native.HtmlInline" pub struct HtmlInline { pub html: String }
+    "Markdown.Native.Emph" pub struct Emph;
+    "Markdown.Native.Strong" pub struct Strong;
+    "Markdown.Native.Strikethrough" pub struct Strikethrough;
+    "Markdown.Native.Superscript" pub struct Superscript;
+    "Markdown.Native.Link" pub struct Link { pub link: NodeLink }
+    "Markdown.Native.Image" pub struct Image { pub link: NodeLink }
+    "Markdown.Native.FootnoteReference" pub struct FootnoteReference { pub name: String }
 }
 
 #[inline]
@@ -152,7 +152,12 @@ pub fn encode_ast_node<'a, 'b>(env: NifEnv<'a>, node: &'b AstNode<'b>) -> NifTer
         &NodeValue::Table(ref alignments) => Table {
             alignments: alignments
                 .iter()
-                .map(|a| format!("{:?}", a))
+                .map(|a| match a {
+                    &nodes::TableAlignment::Left => "left".into(),
+                    &nodes::TableAlignment::Right => "right".into(),
+                    &nodes::TableAlignment::Center => "center".into(),
+                    &nodes::TableAlignment::None => String::new(),
+                })
                 .collect::<Vec<String>>(),
         }.encode(env),
         &NodeValue::TableRow(ref header) => TableRow { header: *header }.encode(env),

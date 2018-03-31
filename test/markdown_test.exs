@@ -1,24 +1,25 @@
-defmodule ComrakTest do
+defmodule MarkdownTest do
   use ExUnit.Case
-  doctest Comrak
+  doctest Markdown
 
   defmodule TestRenderer do
-    use Comrak.Renderer
+    use Markdown.Renderer
 
     def block_code(_data, code, lang) do
       "<pre><code class=\"#{lang}\">#{HtmlEntities.encode(code)}</code></pre>"
     end
   end
 
-  def html(text, output, renderer \\ Comrak.HtmlRenderer) do
-    assert Comrak.render(text, renderer) == output
+  def html(text, output, renderer \\ Markdown.HtmlRenderer) do
+    assert Markdown.render(text, renderer) == output
   end
 
   test "parse markdown into ast" do
-    assert Comrak.parse("Hello, world!") ==
-             {%Comrak.Native.Document{},
+    assert Markdown.parse("Hello, world!") ==
+             {%Markdown.Native.Document{},
               [
-                {%Comrak.Native.Paragraph{}, [{%Comrak.Native.Text{text: "Hello, world!"}, []}]}
+                {%Markdown.Native.Paragraph{},
+                 [{%Markdown.Native.Text{text: "Hello, world!"}, []}]}
               ]}
   end
 
@@ -342,6 +343,36 @@ defmodule ComrakTest do
       Enum.join(
         [
           "<p>I am <img src=\"http://i.imgur.com/QqK1vq7.png\" alt=\"eating things\"/>.</p>"
+        ],
+        ""
+      )
+    )
+  end
+
+  test "tables" do
+    html(
+      Enum.join(
+        [
+          "| a | b |",
+          "|---|:-:|",
+          "| c | d |"
+        ],
+        "\n"
+      ),
+      Enum.join(
+        [
+          "<table>",
+          "<thead>",
+          "<tr>",
+          "<th>a</th>",
+          "<th style=\"text-align: center;\">b</th>",
+          "</tr>",
+          "</thead>",
+          "<tbody>",
+          "<tr>",
+          "<td>c</td>",
+          "<td style=\"text-align: center;\">d</td>",
+          "</tr></tbody></table>"
         ],
         ""
       )

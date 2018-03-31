@@ -1,0 +1,10 @@
+image: trenpixster/elixir:latest
+
+before_script:
+  - curl https://sh.rustup.rs -sSf | sh
+  - rustup default stable
+  - mix local.hex --force
+  - mix deps.get --only test
+mix:
+  script:
+  - mix test
