@@ -1,6 +1,6 @@
 # Markdown
 
-markdown nif render for comrak markdown parser in rust
+markdown renderer for [comrak](https://github.com/kivikakk/comrak) markdown parser
 
 ## Installation
 

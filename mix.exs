@@ -24,7 +24,7 @@ defmodule Markdown.MixProject do
   end
 
   defp description do
-    "markdown nif render for comrak markdown parser in rust"
+    "markdown renderer for comrak markdown parser"
   end
 
   defp package() do
