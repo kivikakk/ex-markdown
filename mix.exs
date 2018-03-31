@@ -6,10 +6,13 @@ defmodule Markdown.MixProject do
       app: :markdown,
       version: "0.1.0",
       elixir: "~> 1.4",
+      package: package(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      description: description(),
       compilers: [:rustler] ++ Mix.compilers(),
-      rustler_crates: rustler_crates()
+      rustler_crates: rustler_crates(),
+      source_url: "https://gitlab.com/nathanfaucett/ex-markdown"
     ]
   end
 
@@ -17,6 +20,19 @@ defmodule Markdown.MixProject do
   def application do
     [
       extra_applications: [:logger]
+    ]
+  end
+
+  defp description do
+    "markdown nif render for comrak markdown parser in rust"
+  end
+
+  defp package() do
+    [
+      files: ["lib", "mix.exs", "README.md", "LICENSE"],
+      maintainers: ["Nathan Faucett"],
+      licenses: ["MIT"],
+      links: %{"Gitlab" => "https://gitlab.com/nathanfaucett/ex-markdown"}
     ]
   end
 

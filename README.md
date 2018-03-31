@@ -1,5 +1,7 @@
 # Markdown
 
+markdown nif render for comrak markdown parser in rust
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
