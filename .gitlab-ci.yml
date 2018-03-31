@@ -2,7 +2,7 @@ image: trenpixster/elixir:latest
 
 before_script:
   - curl https://sh.rustup.rs -sSf | sh -s -- -y
-  - echo "export PATH=~/.cargo/bin:$PATH" >> ~/.bashrc
+  - echo "export PATH=$HOME/.cargo/bin:$PATH" >> ~/.bashrc
   - . ~/.bashrc
   - rustup default stable
   - mix local.hex --force
