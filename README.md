@@ -10,7 +10,7 @@ by adding `markdown` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:markdown, "~> 0.1.0"}
+    {:markdown, "~> 0.1"}
   ]
 end
 ```

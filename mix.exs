@@ -4,7 +4,7 @@ defmodule Markdown.MixProject do
   def project do
     [
       app: :markdown,
-      version: "0.1.1",
+      version: "0.1.2",
       elixir: "~> 1.4",
       package: package(),
       start_permanent: Mix.env() == :prod,
@@ -24,7 +24,9 @@ defmodule Markdown.MixProject do
   end
 
   defp description do
-    "markdown renderer for comrak markdown parser"
+    """
+    #{File.read!(Path.join(File.cwd!(), "README.md"))}
+    """
   end
 
   defp package() do
