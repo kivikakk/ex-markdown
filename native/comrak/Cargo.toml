@@ -7,8 +7,7 @@ edition = "2021"
 [lib]
 name = "comrak"
 path = "src/lib.rs"
-crate-type = ["dylib"]
-# ? crate-type = ["cdylib"]
+crate-type = ["cdylib"]
 
 [dependencies]
 typed-arena = "2.0.1"

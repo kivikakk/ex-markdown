@@ -5,13 +5,13 @@ defmodule MarkdownTest do
   defmodule TestRenderer do
     use Markdown.Renderer
 
-    def block_code(_data, code, lang) do
+    def block_code(_opts, code, lang) do
       "<pre><code class=\"#{lang}\">#{HtmlEntities.encode(code)}</code></pre>"
     end
   end
 
-  def html(text, output, renderer \\ Markdown.HtmlRenderer) do
-    assert Markdown.render(text, renderer) == output
+  def html(text, output, renderer \\ Markdown.HtmlRenderer, opts \\ %Markdown.Renderer.Options{}) do
+    assert Markdown.render(text, renderer, opts) == output
   end
 
   test "parse markdown into ast" do
@@ -376,6 +376,45 @@ defmodule MarkdownTest do
         ],
         ""
       )
+    )
+  end
+
+  test "breaks off" do
+    html(
+      Enum.join(
+        [
+          "Hello,",
+          "world.",
+        ],
+        "\n"
+      ),
+      Enum.join(
+        [
+          "<p>Hello, world.</p>",
+        ],
+        ""
+      )
+    )
+  end
+
+  test "breaks on" do
+    html(
+      Enum.join(
+        [
+          "Hello,",
+          "world.",
+        ],
+        "\n"
+      ),
+      Enum.join(
+        [
+          "<p>Hello,<br>",
+          "world.</p>",
+        ],
+        ""
+      ),
+      Markdown.HtmlRenderer,
+      %Markdown.Renderer.Options{breaks: true}
     )
   end
 end

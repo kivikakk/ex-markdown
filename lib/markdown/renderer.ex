@@ -1,39 +1,43 @@
 defmodule Markdown.Renderer do
+  defmodule Options do
+    defstruct breaks: false
+  end
+
   defmacro __using__(_params) do
     quote do
-      def block_code(_data, code, lang) do
+      def block_code(_opts, code, lang) do
         "<pre><code class=\"language-#{lang}\">#{HtmlEntities.encode(code)}</code></pre>"
       end
 
-      def block_quote(_data, quote) do
+      def block_quote(_opts, quote) do
         "<blockquote>#{quote}</blockquote>"
       end
 
-      def block_html(_data, raw_html) do
+      def block_html(_opts, raw_html) do
         raw_html
       end
 
-      def footnotes(_data, content) do
+      def footnotes(_opts, content) do
         "<div class=\"footnotes\"><hr/><ol>#{content}</ol></div>"
       end
 
-      def footnote_def(_data, content, number) do
+      def footnote_def(_opts, content, number) do
         "<li id=\"fn#{number}\">&nbsp;<a href=\"#fnref#{number}\">&#8617;</a>#{content}</li>"
       end
 
-      def footnote_ref(_data, number) do
+      def footnote_ref(_opts, number) do
         "<sup id=\"fnref#{number}\"><a href=\"#fn#{number}\">#{number}</a></sup>"
       end
 
-      def header(_data, text, header_level) do
+      def header(_opts, text, header_level) do
         "<h#{header_level}>#{text}</h#{header_level}>"
       end
 
-      def hrule(_data) do
+      def hrule(_opts) do
         "<hr/>"
       end
 
-      def list(_data, contents, list_type, start) do
+      def list(_opts, contents, list_type, start) do
         if list_type == "bullet" do
           "<ul start=\"#{start}\">#{contents}</ul>"
         else
@@ -41,23 +45,23 @@ defmodule Markdown.Renderer do
         end
       end
 
-      def list_item(_data, text, _list_type) do
+      def list_item(_opts, text, _list_type) do
         "<li>#{text}</li>"
       end
 
-      def paragraph(_data, text) do
+      def paragraph(_opts, text) do
         "<p>#{text}</p>"
       end
 
-      def table(_data, header, body) do
+      def table(_opts, header, body) do
         "<table><thead>#{header}</thead><tbody>#{body}</tbody></table>"
       end
 
-      def table_row(_data, content) do
+      def table_row(_opts, content) do
         "<tr>#{content}</tr>"
       end
 
-      def table_cell(_data, content, alignment, header) do
+      def table_cell(_opts, content, alignment, header) do
         cell =
           if header do
             "<th"
@@ -79,7 +83,7 @@ defmodule Markdown.Renderer do
         end
       end
 
-      def autolink(_data, url, link_type) do
+      def autolink(_opts, url, link_type) do
         href =
           case link_type do
             "email" ->
@@ -92,19 +96,19 @@ defmodule Markdown.Renderer do
         "<a href=\"#{href}\">#{url}</a>"
       end
 
-      def codespan(_data, code) do
+      def codespan(_opts, code) do
         "<code>#{HtmlEntities.encode(code)}</code>"
       end
 
-      def double_emphasis(_data, text) do
+      def double_emphasis(_opts, text) do
         "<strong>#{text}</strong>"
       end
 
-      def emphasis(_data, text) do
+      def emphasis(_opts, text) do
         "<em>#{text}</em>"
       end
 
-      def image(_data, url, title, alt_text) do
+      def image(_opts, url, title, alt_text) do
         img = "<img src=\"#{url}\""
 
         img =
@@ -117,15 +121,15 @@ defmodule Markdown.Renderer do
         "#{img}#{alt_text}\"/>"
       end
 
-      def linebreak(_data) do
+      def linebreak(_opts) do
         "\n"
       end
 
-      def softbreak(_data) do
-        " "
+      def softbreak(%Options{} = opts) do
+        if opts.breaks do "<br>" else " " end
       end
 
-      def link(_data, url, title, content) do
+      def link(_opts, url, title, content) do
         a = "<a href=\"#{url}\""
 
         a =
@@ -138,31 +142,31 @@ defmodule Markdown.Renderer do
         "#{a}#{content}</a>"
       end
 
-      def raw_html(_data, raw_html) do
+      def raw_html(_opts, raw_html) do
         raw_html
       end
 
-      def triple_emphasis(_data, text) do
+      def triple_emphasis(_opts, text) do
         "<strong><em>#{text}</em></strong>"
       end
 
-      def strikethrough(_data, text) do
+      def strikethrough(_opts, text) do
         "<del>#{text}</del>"
       end
 
-      def superscript(_data, text) do
+      def superscript(_opts, text) do
         "<sup>#{text}</sup>"
       end
 
-      def underline(_data, text) do
+      def underline(_opts, text) do
         "<u>#{text}</u>"
       end
 
-      def highlight(_data, text) do
+      def highlight(_opts, text) do
         "<mark>#{text}</mark>"
       end
 
-      def quote(_data, text) do
+      def quote(_opts, text) do
         "<q>#{text}</q>"
       end
 
