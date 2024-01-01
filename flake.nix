@@ -32,7 +32,7 @@
 
           inherit
             (fenix.packages.${system}.stable)
-            minimalToolchain
+            toolchain
             ;
         };
       };

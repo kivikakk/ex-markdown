@@ -137,18 +137,22 @@ pub fn encode_ast_node<'a, 'b>(env: NifEnv<'a>, node: &'b AstNode<'b>) -> NifTer
         &NodeValue::Item(ref list) => Item { list: list.into() }.encode(env),
         &NodeValue::CodeBlock(ref block) => CodeBlock {
             block: block.into(),
-        }.encode(env),
+        }
+        .encode(env),
         &NodeValue::HtmlBlock(ref block) => HtmlBlock {
             block: block.into(),
-        }.encode(env),
+        }
+        .encode(env),
         &NodeValue::Paragraph => Paragraph.encode(env),
         &NodeValue::Heading(ref heading) => Heading {
             heading: heading.into(),
-        }.encode(env),
+        }
+        .encode(env),
         &NodeValue::ThematicBreak => ThematicBreak.encode(env),
         &NodeValue::FootnoteDefinition(ref name) => FootnoteDefinition {
             name: unsafe { String::from_utf8_unchecked(name.clone()) },
-        }.encode(env),
+        }
+        .encode(env),
         &NodeValue::Table(ref alignments) => Table {
             alignments: alignments
                 .iter()
@@ -159,20 +163,24 @@ pub fn encode_ast_node<'a, 'b>(env: NifEnv<'a>, node: &'b AstNode<'b>) -> NifTer
                     &nodes::TableAlignment::None => String::new(),
                 })
                 .collect::<Vec<String>>(),
-        }.encode(env),
+        }
+        .encode(env),
         &NodeValue::TableRow(ref header) => TableRow { header: *header }.encode(env),
         &NodeValue::TableCell => TableCell.encode(env),
         &NodeValue::Text(ref text) => Text {
             text: unsafe { String::from_utf8_unchecked(text.clone()) },
-        }.encode(env),
+        }
+        .encode(env),
         &NodeValue::SoftBreak => SoftBreak.encode(env),
         &NodeValue::LineBreak => LineBreak.encode(env),
         &NodeValue::Code(ref code) => Code {
             code: unsafe { String::from_utf8_unchecked(code.clone()) },
-        }.encode(env),
+        }
+        .encode(env),
         &NodeValue::HtmlInline(ref html) => HtmlInline {
             html: unsafe { String::from_utf8_unchecked(html.clone()) },
-        }.encode(env),
+        }
+        .encode(env),
         &NodeValue::Emph => Emph.encode(env),
         &NodeValue::Strong => Strong.encode(env),
         &NodeValue::Strikethrough => Strikethrough.encode(env),
@@ -181,10 +189,12 @@ pub fn encode_ast_node<'a, 'b>(env: NifEnv<'a>, node: &'b AstNode<'b>) -> NifTer
         &NodeValue::Image(ref link) => Image { link: link.into() }.encode(env),
         &NodeValue::FootnoteReference(ref name) => FootnoteReference {
             name: unsafe { String::from_utf8_unchecked(name.clone()) },
-        }.encode(env),
+        }
+        .encode(env),
     };
 
-    let children = node.children()
+    let children = node
+        .children()
         .map(|n| encode_ast_node(env, n))
         .collect::<Vec<_>>();
 
@@ -196,19 +206,26 @@ pub fn parse<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>
     let text: &'a str = try!(args[0].decode());
 
     let arena = Arena::new();
+
+    let mut extension = ExtensionOptionsBuilder::default();
+    extension.strikethrough(true);
+    extension.tagfilter(true);
+    extension.table(true);
+    extension.autolink(true);
+    extension.tasklist(true);
+    extension.superscript(true);
+    extension.footnotes(true);
+
+    let mut parse = ParseOptionsBuilder::default();
+
+    let mut render = RenderOptionsBuilder::default();
+    render.hardbreaks(true);
+    render.github_pre_lang(true);
+
     let options = ComrakOptions {
-        hardbreaks: true,
-        github_pre_lang: true,
-        width: 0,
-        default_info_string: None,
-        ext_strikethrough: true,
-        ext_tagfilter: true,
-        ext_table: true,
-        ext_autolink: true,
-        ext_tasklist: true,
-        ext_superscript: true,
-        ext_header_ids: None,
-        ext_footnotes: true,
+        extension,
+        parse,
+        render,
     };
     let root = parse_document(&arena, text, &options);
 
