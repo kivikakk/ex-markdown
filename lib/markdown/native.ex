@@ -1,5 +1,5 @@
 defmodule Markdown.Native do
-  use Rustler, otp_app: :markdown, crate: "comrak", path: "native/comrak", mode: if(Mix.env() == :prod, do: :release, else: :debug)
+  use Rustler, otp_app: :markdown, crate: :comrak, mode: if(Mix.env() == :prod, do: :release, else: :debug)
 
   defmodule NodeList do
     defstruct list_type: "",
