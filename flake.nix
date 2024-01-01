@@ -15,7 +15,6 @@
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
-      inherit (pkgs) lib;
     in rec {
       formatter = pkgs.alejandra;
 
@@ -24,8 +23,6 @@
           inherit
             (pkgs)
             elixir
-            # erlang
-            
             hex
             libiconv
             ;
