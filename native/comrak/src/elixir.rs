@@ -1,40 +1,47 @@
 use comrak::nodes::{self, AstNode, NodeValue};
-use comrak::{parse_document, ComrakOptions};
-use rustler::{NifEncoder, NifEnv, NifResult, NifTerm};
+use comrak::{
+    parse_document, ComrakOptions, ExtensionOptionsBuilder, ParseOptionsBuilder,
+    RenderOptionsBuilder,
+};
+use rustler::{Encoder, Env, NifResult, NifStruct, Term};
 use typed_arena::Arena;
 
-rustler_export_nifs! {
-    "Elixir.Markdown.Native",
-    [("parse", 1, parse)],
-    None
-}
+rustler::init!("Elixir.Markdown.Native", [parse]);
 
-macro_rules! nifs_structs {
-    ($($name:tt $struct:item)*) => {$(
-        #[derive(NifStruct)]
-        #[module = $name]
-        $struct
-    )*}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.NodeList"]
+pub struct NodeList {
+    pub list_type: String,
+    pub start: usize,
+    pub delimiter: String,
+    pub bullet_char: String,
+    pub tight: bool,
 }
-
-nifs_structs! {
-    "Markdown.Native.NodeList" pub struct NodeList {
-        pub list_type: String,
-        pub start: usize,
-        pub delimiter: String,
-        pub bullet_char: String,
-        pub tight: bool,
-    }
-    "Markdown.Native.NodeCodeBlock" pub struct NodeCodeBlock {
-        pub fenced: bool,
-        pub fence_char: String,
-        pub fence_length: usize,
-        pub info: String,
-        pub literal: String,
-    }
-    "Markdown.Native.NodeHtmlBlock" pub struct NodeHtmlBlock { pub literal: String }
-    "Markdown.Native.NodeHeading" pub struct NodeHeading { pub level: u32, pub setext: bool }
-    "Markdown.Native.NodeLink" pub struct NodeLink { pub url: String, pub title: String }
+#[derive(NifStruct)]
+#[module = "Markdown.Native.NodeCodeBlock"]
+pub struct NodeCodeBlock {
+    pub fenced: bool,
+    pub fence_char: String,
+    pub fence_length: usize,
+    pub info: String,
+    pub literal: String,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.NodeHtmlBlock"]
+pub struct NodeHtmlBlock {
+    pub literal: String,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.NodeHeading"]
+pub struct NodeHeading {
+    pub level: u8,
+    pub setext: bool,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.NodeLink"]
+pub struct NodeLink {
+    pub url: String,
+    pub title: String,
 }
 
 impl<'a> From<&'a nodes::NodeList> for NodeList {
@@ -63,8 +70,8 @@ impl<'a> From<&'a nodes::NodeCodeBlock> for NodeCodeBlock {
             fenced: list.fenced,
             fence_char: list.fence_char.to_string(),
             fence_length: list.fence_length,
-            info: unsafe { String::from_utf8_unchecked(list.info.clone()) },
-            literal: unsafe { String::from_utf8_unchecked(list.literal.clone()) },
+            info: list.info.clone(),
+            literal: list.literal.clone(),
         }
     }
 }
@@ -73,7 +80,7 @@ impl<'a> From<&'a nodes::NodeHtmlBlock> for NodeHtmlBlock {
     #[inline]
     fn from(list: &'a nodes::NodeHtmlBlock) -> Self {
         NodeHtmlBlock {
-            literal: unsafe { String::from_utf8_unchecked(list.literal.clone()) },
+            literal: list.literal.clone(),
         }
     }
 }
@@ -92,42 +99,129 @@ impl<'a> From<&'a nodes::NodeLink> for NodeLink {
     #[inline]
     fn from(list: &'a nodes::NodeLink) -> Self {
         NodeLink {
-            url: unsafe { String::from_utf8_unchecked(list.url.clone()) },
-            title: unsafe { String::from_utf8_unchecked(list.title.clone()) },
+            url: list.url.clone(),
+            title: list.title.clone(),
         }
     }
 }
 
-nifs_structs! {
-    "Markdown.Native.Document" pub struct Document;
-    "Markdown.Native.BlockQuote" pub struct BlockQuote;
-    "Markdown.Native.List" pub struct List { pub list: NodeList }
-    "Markdown.Native.Item" pub struct Item { pub list: NodeList }
-    "Markdown.Native.CodeBlock" pub struct CodeBlock { pub block: NodeCodeBlock }
-    "Markdown.Native.HtmlBlock" pub struct HtmlBlock { pub block: NodeHtmlBlock }
-    "Markdown.Native.Paragraph" pub struct Paragraph;
-    "Markdown.Native.Heading" pub struct Heading { pub heading: NodeHeading }
-    "Markdown.Native.ThematicBreak" pub struct ThematicBreak;
-    "Markdown.Native.FootnoteDefinition" pub struct FootnoteDefinition { pub name: String }
-    "Markdown.Native.Table" pub struct Table { pub alignments: Vec<String> }
-    "Markdown.Native.TableRow" pub struct TableRow { pub header: bool }
-    "Markdown.Native.TableCell" pub struct TableCell;
-    "Markdown.Native.Text" pub struct Text { pub text: String }
-    "Markdown.Native.SoftBreak" pub struct SoftBreak;
-    "Markdown.Native.LineBreak" pub struct LineBreak;
-    "Markdown.Native.Code" pub struct Code { pub code: String }
-    "Markdown.Native.HtmlInline" pub struct HtmlInline { pub html: String }
-    "Markdown.Native.Emph" pub struct Emph;
-    "Markdown.Native.Strong" pub struct Strong;
-    "Markdown.Native.Strikethrough" pub struct Strikethrough;
-    "Markdown.Native.Superscript" pub struct Superscript;
-    "Markdown.Native.Link" pub struct Link { pub link: NodeLink }
-    "Markdown.Native.Image" pub struct Image { pub link: NodeLink }
-    "Markdown.Native.FootnoteReference" pub struct FootnoteReference { pub name: String }
+#[derive(NifStruct)]
+#[module = "Markdown.Native.Document"]
+pub struct Document;
+
+#[derive(NifStruct)]
+#[module = "Markdown.Native.BlockQuote"]
+pub struct BlockQuote;
+
+#[derive(NifStruct)]
+#[module = "Markdown.Native.List"]
+pub struct List {
+    pub list: NodeList,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.Item"]
+pub struct Item {
+    pub list: NodeList,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.CodeBlock"]
+pub struct CodeBlock {
+    pub block: NodeCodeBlock,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.HtmlBlock"]
+pub struct HtmlBlock {
+    pub block: NodeHtmlBlock,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.Paragraph"]
+pub struct Paragraph;
+
+#[derive(NifStruct)]
+#[module = "Markdown.Native.Heading"]
+pub struct Heading {
+    pub heading: NodeHeading,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.ThematicBreak"]
+pub struct ThematicBreak;
+
+#[derive(NifStruct)]
+#[module = "Markdown.Native.FootnoteDefinition"]
+pub struct FootnoteDefinition {
+    pub name: String,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.Table"]
+pub struct Table {
+    pub alignments: Vec<String>,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.TableRow"]
+pub struct TableRow {
+    pub header: bool,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.TableCell"]
+pub struct TableCell;
+
+#[derive(NifStruct)]
+#[module = "Markdown.Native.Text"]
+pub struct Text {
+    pub text: String,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.SoftBreak"]
+pub struct SoftBreak;
+
+#[derive(NifStruct)]
+#[module = "Markdown.Native.LineBreak"]
+pub struct LineBreak;
+
+#[derive(NifStruct)]
+#[module = "Markdown.Native.Code"]
+pub struct Code {
+    pub code: String,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.HtmlInline"]
+pub struct HtmlInline {
+    pub html: String,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.Emph"]
+pub struct Emph;
+
+#[derive(NifStruct)]
+#[module = "Markdown.Native.Strong"]
+pub struct Strong;
+
+#[derive(NifStruct)]
+#[module = "Markdown.Native.Strikethrough"]
+pub struct Strikethrough;
+
+#[derive(NifStruct)]
+#[module = "Markdown.Native.Superscript"]
+pub struct Superscript;
+
+#[derive(NifStruct)]
+#[module = "Markdown.Native.Link"]
+pub struct Link {
+    pub link: NodeLink,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.Image"]
+pub struct Image {
+    pub link: NodeLink,
+}
+#[derive(NifStruct)]
+#[module = "Markdown.Native.FootnoteReference"]
+pub struct FootnoteReference {
+    pub name: String,
 }
 
 #[inline]
-pub fn encode_ast_node<'a, 'b>(env: NifEnv<'a>, node: &'b AstNode<'b>) -> NifTerm<'a> {
+pub fn encode_ast_node<'a, 'b>(env: Env<'a>, node: &'b AstNode<'b>) -> Term<'a> {
     let ast = node.data.borrow();
 
     let parent = match &ast.value {
@@ -149,12 +243,13 @@ pub fn encode_ast_node<'a, 'b>(env: NifEnv<'a>, node: &'b AstNode<'b>) -> NifTer
         }
         .encode(env),
         &NodeValue::ThematicBreak => ThematicBreak.encode(env),
-        &NodeValue::FootnoteDefinition(ref name) => FootnoteDefinition {
-            name: unsafe { String::from_utf8_unchecked(name.clone()) },
+        &NodeValue::FootnoteDefinition(ref nfd) => FootnoteDefinition {
+            name: nfd.name.clone(),
         }
         .encode(env),
-        &NodeValue::Table(ref alignments) => Table {
-            alignments: alignments
+        &NodeValue::Table(ref nt) => Table {
+            alignments: nt
+                .alignments
                 .iter()
                 .map(|a| match a {
                     &nodes::TableAlignment::Left => "left".into(),
@@ -167,30 +262,30 @@ pub fn encode_ast_node<'a, 'b>(env: NifEnv<'a>, node: &'b AstNode<'b>) -> NifTer
         .encode(env),
         &NodeValue::TableRow(ref header) => TableRow { header: *header }.encode(env),
         &NodeValue::TableCell => TableCell.encode(env),
-        &NodeValue::Text(ref text) => Text {
-            text: unsafe { String::from_utf8_unchecked(text.clone()) },
-        }
-        .encode(env),
+        &NodeValue::Text(ref text) => Text { text: text.clone() }.encode(env),
         &NodeValue::SoftBreak => SoftBreak.encode(env),
         &NodeValue::LineBreak => LineBreak.encode(env),
-        &NodeValue::Code(ref code) => Code {
-            code: unsafe { String::from_utf8_unchecked(code.clone()) },
+        &NodeValue::Code(ref nc) => Code {
+            code: nc.literal.clone(),
         }
         .encode(env),
-        &NodeValue::HtmlInline(ref html) => HtmlInline {
-            html: unsafe { String::from_utf8_unchecked(html.clone()) },
-        }
-        .encode(env),
+        &NodeValue::HtmlInline(ref html) => HtmlInline { html: html.clone() }.encode(env),
         &NodeValue::Emph => Emph.encode(env),
         &NodeValue::Strong => Strong.encode(env),
         &NodeValue::Strikethrough => Strikethrough.encode(env),
         &NodeValue::Superscript => Superscript.encode(env),
         &NodeValue::Link(ref link) => Link { link: link.into() }.encode(env),
         &NodeValue::Image(ref link) => Image { link: link.into() }.encode(env),
-        &NodeValue::FootnoteReference(ref name) => FootnoteReference {
-            name: unsafe { String::from_utf8_unchecked(name.clone()) },
+        &NodeValue::FootnoteReference(ref nfr) => FootnoteReference {
+            name: nfr.name.clone(),
         }
         .encode(env),
+        &NodeValue::FrontMatter(_) => unimplemented!(),
+        &NodeValue::DescriptionList => unimplemented!(),
+        &NodeValue::DescriptionItem(_) => unimplemented!(),
+        &NodeValue::DescriptionTerm => unimplemented!(),
+        &NodeValue::DescriptionDetails => unimplemented!(),
+        &NodeValue::TaskItem(_) => unimplemented!(),
     };
 
     let children = node
@@ -201,26 +296,28 @@ pub fn encode_ast_node<'a, 'b>(env: NifEnv<'a>, node: &'b AstNode<'b>) -> NifTer
     (parent, children).encode(env)
 }
 
-#[inline]
-pub fn parse<'a>(env: NifEnv<'a>, args: &[NifTerm<'a>]) -> NifResult<NifTerm<'a>> {
-    let text: &'a str = try!(args[0].decode());
-
+#[rustler::nif]
+pub fn parse<'a>(env: Env<'a>, text: &'a str) -> NifResult<Term<'a>> {
     let arena = Arena::new();
 
-    let mut extension = ExtensionOptionsBuilder::default();
-    extension.strikethrough(true);
-    extension.tagfilter(true);
-    extension.table(true);
-    extension.autolink(true);
-    extension.tasklist(true);
-    extension.superscript(true);
-    extension.footnotes(true);
+    let extension = ExtensionOptionsBuilder::default()
+        .strikethrough(true)
+        .tagfilter(true)
+        .table(true)
+        .autolink(true)
+        .tasklist(true)
+        .superscript(true)
+        .footnotes(true)
+        .build()
+        .unwrap();
 
-    let mut parse = ParseOptionsBuilder::default();
+    let parse = ParseOptionsBuilder::default().build().unwrap();
 
-    let mut render = RenderOptionsBuilder::default();
-    render.hardbreaks(true);
-    render.github_pre_lang(true);
+    let render = RenderOptionsBuilder::default()
+        .hardbreaks(true)
+        .github_pre_lang(true)
+        .build()
+        .unwrap();
 
     let options = ComrakOptions {
         extension,

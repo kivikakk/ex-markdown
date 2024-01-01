@@ -2,13 +2,15 @@
 name = "comrak"
 version = "0.1.0"
 authors = ["HansiHE <hansihe@hansihe.com>"]
+edition = "2021"
 
 [lib]
 name = "comrak"
 path = "src/lib.rs"
 crate-type = ["dylib"]
+# ? crate-type = ["cdylib"]
 
 [dependencies]
-rustler = "0.30"
-rustler_codegen = "0.30"
+typed-arena = "2.0.1"
+rustler = "0.30.0"
 comrak = "0.20"

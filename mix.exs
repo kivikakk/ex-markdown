@@ -10,8 +10,6 @@ defmodule Markdown.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
-      compilers: [:rustler] ++ Mix.compilers(),
-      rustler_crates: rustler_crates(),
       source_url: "https://gitlab.com/nathanfaucett/ex-markdown"
     ]
   end
@@ -42,17 +40,8 @@ defmodule Markdown.MixProject do
   defp deps do
     [
       {:html_entities, "~> 0.4"},
-      {:rustler, "~> 0.16"},
+      {:rustler, "~> 0.30"},
       {:ex_doc, ">= 0.0.0", only: :dev}
-    ]
-  end
-
-  defp rustler_crates do
-    [
-      io: [
-        path: "native/comrak",
-        mode: if(Mix.env() == :prod, do: :release, else: :debug)
-      ]
     ]
   end
 end
