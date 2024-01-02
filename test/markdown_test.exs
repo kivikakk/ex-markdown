@@ -10,7 +10,7 @@ defmodule MarkdownTest do
     end
   end
 
-  def html(text, output, renderer \\ Markdown.HtmlRenderer, opts \\ %Markdown.Renderer.Options{}) do
+  def html(text, output, renderer \\ Markdown.HtmlRenderer, opts \\ %{}) do
     assert Markdown.render(text, renderer, opts) == output
   end
 
@@ -39,7 +39,7 @@ defmodule MarkdownTest do
       Enum.join(
         [
           "<p>My <strong>document</strong>.</p>",
-          "<p>It&apos;s mine.</p>",
+          "<p>It&#39;s mine.</p>",
           "<blockquote>",
           "<p>Yes.</p>",
           "</blockquote>",
@@ -63,7 +63,7 @@ defmodule MarkdownTest do
       ),
       Enum.join(
         [
-          "<pre><code class=\"rust\">fn main&lt;&apos;a&gt;();\n",
+          "<pre><code class=\"rust\">fn main&lt;&#39;a&gt;();\n",
           "</code></pre>"
         ],
         ""
@@ -414,7 +414,7 @@ defmodule MarkdownTest do
         ""
       ),
       Markdown.HtmlRenderer,
-      %Markdown.Renderer.Options{breaks: true}
+      %{breaks: true}
     )
   end
 end

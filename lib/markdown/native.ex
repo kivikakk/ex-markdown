@@ -1,5 +1,8 @@
 defmodule Markdown.Native do
-  use Rustler, otp_app: :markdown, crate: :comrak, mode: if(Mix.env() == :prod, do: :release, else: :debug)
+  use Rustler, otp_app: :markdown,
+               crate: :comrak_rustler,
+               mode: if(Mix.env() == :prod, do: :release, else: :debug),
+               skip_compilation?: System.get_env("MARKDOWN_NATIVE_SKIP_COMPILATION") != nil
 
   defmodule NodeList do
     defstruct list_type: "",

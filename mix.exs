@@ -39,7 +39,7 @@ defmodule Markdown.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:html_entities, "~> 0.4"},
+      {:html_entities, "~> 0.5"},
       {:rustler, "~> 0.30"},
       {:ex_doc, ">= 0.0.0", only: :dev}
     ]

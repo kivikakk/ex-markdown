@@ -1,11 +1,11 @@
 [package]
-name = "comrak"
-version = "0.1.0"
-authors = ["HansiHE <hansihe@hansihe.com>"]
+name = "comrak_rustler"
+version = "0.1.2"
+authors = []
 edition = "2021"
 
 [lib]
-name = "comrak"
+name = "comrak_rustler"
 path = "src/lib.rs"
 crate-type = ["cdylib"]
 

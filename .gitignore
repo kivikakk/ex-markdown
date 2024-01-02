@@ -23,3 +23,6 @@ erl_crash.dump
 markdown-*.tar
 
 /priv/native/*.so
+
+# Nix
+/result
