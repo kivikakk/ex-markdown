@@ -84,8 +84,9 @@ defmodule MarkdownTest do
       Enum.join(
         [
           "<ol start=\"2\">",
-          "<li>Hello.</li>",
-          "<li>Hi.</li>",
+          # XXX(ashe): no tightness distinction on lists in the Elixir renderer.
+          "<li><p>Hello.</p></li>",
+          "<li><p>Hi.</p></li>",
           "</ol>"
         ],
         ""

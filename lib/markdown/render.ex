@@ -57,24 +57,25 @@ defmodule Markdown.Render do
         render_children(context, children)
 
       %Native.BlockQuote{} ->
-        tmp = render_children(clear(context), children)
-        write(context, context.renderer.block_quote(context.opts, tmp.output))
+        kids = render_children(clear(context), children)
+        write(context, context.renderer.block_quote(context.opts, kids.output))
 
       %Native.List{list: list} ->
-        tmp = render_children(clear(context), children)
+        kids = render_children(clear(context), children)
 
         write(
           context,
-          context.renderer.list(context.opts, tmp.output, list.list_type, list.start)
+          context.renderer.list(context.opts, kids.output, list.list_type, list.start)
         )
 
       %Native.Item{list: list} ->
-        tmp = render_children_as_text(clear(context), children)
-        write(context, context.renderer.list_item(context.opts, tmp.output, list.list_type))
+        # XXX(ashe): we don't do any tightness distinctions on lists.
+        kids = render_children(clear(context), children)
+        write(context, context.renderer.list_item(context.opts, kids.output, list.list_type))
 
       %Native.Heading{heading: heading} ->
-        tmp = render_children(clear(context), children)
-        write(context, context.renderer.header(context.opts, tmp.output, heading.level))
+        kids = render_children(clear(context), children)
+        write(context, context.renderer.header(context.opts, kids.output, heading.level))
 
       %Native.CodeBlock{block: block} ->
         lang = Enum.at(String.split(block.info, " "), 0)
@@ -87,8 +88,8 @@ defmodule Markdown.Render do
         write(context, context.renderer.hrule(context.opts))
 
       %Native.Paragraph{} ->
-        tmp = render_children(clear(context), children)
-        write(context, context.renderer.paragraph(context.opts, tmp.output))
+        kids = render_children(clear(context), children)
+        write(context, context.renderer.paragraph(context.opts, kids.output))
 
       %Native.Text{text: text} ->
         write(context, HtmlEntities.encode(text))
@@ -106,28 +107,28 @@ defmodule Markdown.Render do
         write(context, context.renderer.raw_html(context.opts, html))
 
       %Native.Strong{} ->
-        tmp = render_children(clear(context), children)
-        write(context, context.renderer.double_emphasis(context.opts, tmp.output))
+        kids = render_children(clear(context), children)
+        write(context, context.renderer.double_emphasis(context.opts, kids.output))
 
       %Native.Emph{} ->
-        tmp = render_children(clear(context), children)
-        write(context, context.renderer.emphasis(context.opts, tmp.output))
+        kids = render_children(clear(context), children)
+        write(context, context.renderer.emphasis(context.opts, kids.output))
 
       %Native.Strikethrough{} ->
-        tmp = render_children(clear(context), children)
-        write(context, context.renderer.strikethrough(context.opts, tmp.output))
+        kids = render_children(clear(context), children)
+        write(context, context.renderer.strikethrough(context.opts, kids.output))
 
       %Native.Superscript{} ->
-        tmp = render_children(clear(context), children)
-        write(context, context.renderer.superscript(context.opts, tmp.output))
+        kids = render_children(clear(context), children)
+        write(context, context.renderer.superscript(context.opts, kids.output))
 
       %Native.Link{link: link} ->
-        tmp = render_children(clear(context), children)
-        write(context, context.renderer.link(context.opts, link.url, link.title, tmp.output))
+        kids = render_children(clear(context), children)
+        write(context, context.renderer.link(context.opts, link.url, link.title, kids.output))
 
       %Native.Image{link: link} ->
-        tmp = render_children_as_text(clear(context), children)
-        write(context, context.renderer.image(context.opts, link.url, link.title, tmp.output))
+        kids = render_children_as_text(clear(context), children)
+        write(context, context.renderer.image(context.opts, link.url, link.title, kids.output))
 
       %Native.Table{alignments: alignments} ->
         render_table_node(context, alignments, children)
@@ -140,11 +141,11 @@ defmodule Markdown.Render do
 
       %Native.FootnoteDefinition{name: _name} ->
         context = Map.put(context, :footnote_ix, context.footnote_ix + 1)
-        tmp = render_children_as_text(clear(context), children)
+        kids = render_children(clear(context), children)
 
         write(
           context,
-          context.renderer.footnote_def(context.opts, tmp.output, context.footnote_ix)
+          context.renderer.footnote_def(context.opts, kids.output, context.footnote_ix)
         )
 
       %Native.FootnoteReference{name: name} ->
@@ -195,18 +196,18 @@ defmodule Markdown.Render do
   end
 
   defp render_table_row_node(%Context{} = context, alignments, children, header) do
-    tmp =
+    kids =
       Enum.reduce(Enum.with_index(children), clear(context), fn {{child_node, child_children},
                                                                  index},
                                                                 context ->
         case child_node do
           %Native.TableCell{} ->
             alignment = Enum.at(alignments, index, "")
-            tmp = render_children_as_text(clear(context), child_children)
+            kids = render_children(clear(context), child_children)
 
             write(
               context,
-              context.renderer.table_cell(context.opts, tmp.output, alignment, header)
+              context.renderer.table_cell(context.opts, kids.output, alignment, header)
             )
 
           _ ->
@@ -216,7 +217,7 @@ defmodule Markdown.Render do
 
     write(
       context,
-      context.renderer.table_row(context.opts, tmp.output)
+      context.renderer.table_row(context.opts, kids.output)
     )
   end
 end
