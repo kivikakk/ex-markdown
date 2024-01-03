@@ -1,12 +1,5 @@
 use comrak::nodes::{self, AstNode, NodeValue};
-use comrak::{
-    parse_document, ComrakOptions, ExtensionOptionsBuilder, ListStyleType, ParseOptionsBuilder,
-    RenderOptionsBuilder,
-};
-use rustler::{Encoder, Env, NifResult, NifStruct, NifUnitEnum, Term};
-use typed_arena::Arena;
-
-rustler::init!("Elixir.Markdown.Native", [parse]);
+use rustler::{Encoder, Env, NifStruct, Term};
 
 #[derive(NifStruct)]
 #[module = "Markdown.Native.NodeList"]
@@ -17,6 +10,7 @@ pub struct NodeList {
     pub bullet_char: String,
     pub tight: bool,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.NodeCodeBlock"]
 pub struct NodeCodeBlock {
@@ -26,17 +20,20 @@ pub struct NodeCodeBlock {
     pub info: String,
     pub literal: String,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.NodeHtmlBlock"]
 pub struct NodeHtmlBlock {
     pub literal: String,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.NodeHeading"]
 pub struct NodeHeading {
     pub level: u8,
     pub setext: bool,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.NodeLink"]
 pub struct NodeLink {
@@ -118,21 +115,25 @@ pub struct BlockQuote;
 pub struct List {
     pub list: NodeList,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.Item"]
 pub struct Item {
     pub list: NodeList,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.CodeBlock"]
 pub struct CodeBlock {
     pub block: NodeCodeBlock,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.HtmlBlock"]
 pub struct HtmlBlock {
     pub block: NodeHtmlBlock,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.Paragraph"]
 pub struct Paragraph;
@@ -142,6 +143,7 @@ pub struct Paragraph;
 pub struct Heading {
     pub heading: NodeHeading,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.ThematicBreak"]
 pub struct ThematicBreak;
@@ -151,16 +153,19 @@ pub struct ThematicBreak;
 pub struct FootnoteDefinition {
     pub name: String,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.Table"]
 pub struct Table {
     pub alignments: Vec<String>,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.TableRow"]
 pub struct TableRow {
     pub header: bool,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.TableCell"]
 pub struct TableCell;
@@ -170,6 +175,7 @@ pub struct TableCell;
 pub struct Text {
     pub text: String,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.SoftBreak"]
 pub struct SoftBreak;
@@ -183,11 +189,13 @@ pub struct LineBreak;
 pub struct Code {
     pub code: String,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.HtmlInline"]
 pub struct HtmlInline {
     pub html: String,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.Emph"]
 pub struct Emph;
@@ -209,11 +217,13 @@ pub struct Superscript;
 pub struct Link {
     pub link: NodeLink,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.Image"]
 pub struct Image {
     pub link: NodeLink,
 }
+
 #[derive(NifStruct)]
 #[module = "Markdown.Native.FootnoteReference"]
 pub struct FootnoteReference {
@@ -294,99 +304,4 @@ pub fn encode_ast_node<'a, 'b>(env: Env<'a>, node: &'b AstNode<'b>) -> Term<'a> 
         .collect::<Vec<_>>();
 
     (parent, children).encode(env)
-}
-
-#[derive(NifStruct)]
-#[module = "Markdown.Renderer.Options"]
-pub struct Options {
-    // extensions
-    pub strikethrough: bool,
-    pub tagfilter: bool,
-    pub table: bool,
-    pub autolink: bool,
-    pub tasklist: bool,
-    pub superscript: bool,
-    pub header_ids: Option<String>,
-    pub footnotes: bool,
-    pub description_lists: bool,
-    pub front_matter_delimiter: Option<String>,
-    // parse options
-    pub smart: bool,
-    pub default_info_string: Option<String>,
-    pub relaxed_tasklist_matching: bool,
-    pub relaxed_autolinks: bool,
-    // render options
-    pub hardbreaks: bool,
-    pub github_pre_lang: bool,
-    pub full_info_string: bool,
-    pub width: usize,
-    pub unsafe_: bool,
-    pub escape: bool,
-    pub list_style: ListStyle,
-    pub sourcepos: bool,
-}
-
-#[derive(NifUnitEnum)]
-pub enum ListStyle {
-    Dash,
-    Plus,
-    Star,
-}
-
-impl Into<ListStyleType> for ListStyle {
-    fn into(self) -> ListStyleType {
-        match self {
-            Self::Dash => ListStyleType::Dash,
-            Self::Plus => ListStyleType::Plus,
-            Self::Star => ListStyleType::Star,
-        }
-    }
-}
-
-#[rustler::nif]
-pub fn parse<'a>(env: Env<'a>, text: &'a str, opts: Options) -> NifResult<Term<'a>> {
-    let arena = Arena::new();
-
-    let extension = ExtensionOptionsBuilder::default()
-        .strikethrough(opts.strikethrough)
-        .tagfilter(opts.tagfilter)
-        .table(opts.table)
-        .autolink(opts.autolink)
-        .tasklist(opts.tasklist)
-        .superscript(opts.superscript)
-        .header_ids(opts.header_ids)
-        .footnotes(opts.footnotes)
-        .description_lists(opts.description_lists)
-        .front_matter_delimiter(opts.front_matter_delimiter)
-        .build()
-        .unwrap();
-
-    let parse = ParseOptionsBuilder::default()
-        .smart(opts.smart)
-        .default_info_string(opts.default_info_string)
-        .relaxed_tasklist_matching(opts.relaxed_tasklist_matching)
-        .relaxed_autolinks(opts.relaxed_autolinks)
-        .build()
-        .unwrap();
-
-    let render = RenderOptionsBuilder::default()
-        .hardbreaks(opts.hardbreaks)
-        .github_pre_lang(opts.github_pre_lang)
-        .full_info_string(opts.full_info_string)
-        .width(opts.width)
-        .unsafe_(opts.unsafe_)
-        .escape(opts.escape)
-        .list_style(opts.list_style.into())
-        .sourcepos(opts.sourcepos)
-        .build()
-        .unwrap();
-
-    let options = ComrakOptions {
-        extension,
-        parse,
-        render,
-    };
-    let root = parse_document(&arena, text, &options);
-
-    Ok(encode_ast_node(env, root))
 }

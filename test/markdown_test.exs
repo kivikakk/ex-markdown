@@ -10,12 +10,17 @@ defmodule MarkdownTest do
     end
   end
 
-  def html(text, output, opts \\ %{}, renderer \\ Markdown.HtmlRenderer) do
-    assert Markdown.render(text, opts, renderer) == output
+  def html(md, opts, renderer, expected) do
+    assert expected == Markdown.to_html(md, opts, renderer)
+  end
+
+  def html2(md, opts, native, html) do
+    assert html(md, opts, nil, native)
+    assert html(md, opts, Markdown.HtmlRenderer, html)
   end
 
   test "parse markdown into ast" do
-    assert Markdown.parse("Hello, world!") ==
+    assert Markdown.to_ast("Hello, world!") ==
              {%Markdown.Native.Document{},
               [
                 {%Markdown.Native.Paragraph{},
@@ -24,7 +29,7 @@ defmodule MarkdownTest do
   end
 
   test "basic html" do
-    html(
+    html2(
       Enum.join(
         [
           "My **document**.",
@@ -32,9 +37,22 @@ defmodule MarkdownTest do
           "It's mine.",
           "> Yes.",
           "## Hi!",
-          "Okay."
+          "Okay.",
         ],
         "\n"
+      ),
+      %{},
+      Enum.join(
+        [
+          "<p>My <strong>document</strong>.</p>\n",
+          "<p>It's mine.</p>\n",
+          "<blockquote>\n",
+          "<p>Yes.</p>\n",
+          "</blockquote>\n",
+          "<h2>Hi!</h2>\n",
+          "<p>Okay.</p>\n",
+        ],
+        ""
       ),
       Enum.join(
         [
@@ -44,7 +62,7 @@ defmodule MarkdownTest do
           "<p>Yes.</p>",
           "</blockquote>",
           "<h2>Hi!</h2>",
-          "<p>Okay.</p>"
+          "<p>Okay.</p>",
         ],
         ""
       )
@@ -57,30 +75,40 @@ defmodule MarkdownTest do
         [
           "``` rust yum",
           "fn main<'a>();",
-          "```"
+          "```",
         ],
         "\n"
       ),
+      %{},
+      TestRenderer,
       Enum.join(
         [
           "<pre><code class=\"rust\">fn main&lt;&#39;a&gt;();\n",
-          "</code></pre>"
+          "</code></pre>",
         ],
         ""
-      ),
-      %{},
-      TestRenderer
+      )
     )
   end
 
   test "list html" do
-    html(
+    html2(
       Enum.join(
         [
           "2. Hello.",
-          "3. Hi."
+          "3. Hi.",
         ],
         "\n"
+      ),
+      %{},
+      Enum.join(
+        [
+          "<ol start=\"2\">\n",
+          "<li>Hello.</li>\n",
+          "<li>Hi.</li>\n",
+          "</ol>\n",
+        ],
+        ""
       ),
       Enum.join(
         [
@@ -88,7 +116,7 @@ defmodule MarkdownTest do
           # XXX(ashe): no tightness distinction on lists in the Elixir renderer.
           "<li><p>Hello.</p></li>",
           "<li><p>Hi.</p></li>",
-          "</ol>"
+          "</ol>",
         ],
         ""
       )
@@ -96,21 +124,29 @@ defmodule MarkdownTest do
   end
 
   test "thematic breaks html" do
-    html(
+    html2(
       Enum.join(
         [
           "Hi",
           "==",
           "",
           "Ok",
-          "-----"
+          "-----",
         ],
         "\n"
+      ),
+      %{},
+      Enum.join(
+        [
+          "<h1>Hi</h1>\n",
+          "<h2>Ok</h2>\n",
+        ],
+        ""
       ),
       Enum.join(
         [
           "<h1>Hi</h1>",
-          "<h2>Ok</h2>"
+          "<h2>Ok</h2>",
         ],
         ""
       )
@@ -118,7 +154,7 @@ defmodule MarkdownTest do
   end
 
   test "html block 1 html" do
-    html(
+    html2(
       Enum.join(
         [
           "<script>",
@@ -136,9 +172,27 @@ defmodule MarkdownTest do
           "*ok*",
           "</style>",
           "",
-          "*ok*"
+          "*ok*",
         ],
         "\n"
+      ),
+      %{unsafe_: true},
+      Enum.join(
+        [
+          "<script>\n",
+          "*ok* </script> *ok*\n",
+          "<p><em>ok</em></p>\n",
+          "<p><em>ok</em></p>\n",
+          "<pre x>\n",
+          "*ok*\n",
+          "</style>\n",
+          "<p><em>ok</em></p>\n",
+          "<style>\n",
+          "*ok*\n",
+          "</style>\n",
+          "<p><em>ok</em></p>\n",
+        ],
+        ""
       ),
       Enum.join(
         [
@@ -153,7 +207,7 @@ defmodule MarkdownTest do
           "<style>\n",
           "*ok*\n",
           "</style>\n",
-          "<p><em>ok</em></p>"
+          "<p><em>ok</em></p>",
         ],
         ""
       )
@@ -161,22 +215,32 @@ defmodule MarkdownTest do
   end
 
   test "html block 2 html" do
-    html(
+    html2(
       Enum.join(
         [
           "   <!-- abc",
           "",
           "ok --> *hi*",
-          "*hi*"
+          "*hi*",
         ],
         "\n"
+      ),
+      %{unsafe_: true},
+      Enum.join(
+        [
+          "   <!-- abc\n",
+          "\n",
+          "ok --> *hi*\n",
+          "<p><em>hi</em></p>\n",
+        ],
+        ""
       ),
       Enum.join(
         [
           "   <!-- abc\n",
           "\n",
           "ok --> *hi*\n",
-          "<p><em>hi</em></p>"
+          "<p><em>hi</em></p>",
         ],
         ""
       )
@@ -184,20 +248,29 @@ defmodule MarkdownTest do
   end
 
   test "html block 3 html" do
-    html(
+    html2(
       Enum.join(
         [
           " <? o",
           "k ?> *a*",
-          "*a*"
+          "*a*",
         ],
         "\n"
+      ),
+      %{unsafe_: true},
+      Enum.join(
+        [
+          " <? o\n",
+          "k ?> *a*\n",
+          "<p><em>a</em></p>\n",
+        ],
+        ""
       ),
       Enum.join(
         [
           " <? o\n",
           "k ?> *a*\n",
-          "<p><em>a</em></p>"
+          "<p><em>a</em></p>",
         ],
         ""
       )
@@ -205,16 +278,27 @@ defmodule MarkdownTest do
   end
 
   test "html block 4 html" do
-    html(
+    html2(
       Enum.join(
         [
           "<!X >",
           "ok",
           "<!X",
           "um > h",
-          "ok"
+          "ok",
         ],
         "\n"
+      ),
+      %{unsafe_: true},
+      Enum.join(
+        [
+          "<!X >\n",
+          "<p>ok</p>\n",
+          "<!X\n",
+          "um > h\n",
+          "<p>ok</p>\n",
+        ],
+        ""
       ),
       Enum.join(
         [
@@ -222,7 +306,7 @@ defmodule MarkdownTest do
           "<p>ok</p>",
           "<!X\n",
           "um > h\n",
-          "<p>ok</p>"
+          "<p>ok</p>",
         ],
         ""
       )
@@ -230,7 +314,7 @@ defmodule MarkdownTest do
   end
 
   test "html block 5 html" do
-    html(
+    html2(
       Enum.join(
         [
           "<![CDATA[",
@@ -238,9 +322,21 @@ defmodule MarkdownTest do
           "hm >",
           "*ok*",
           "]]> *ok*",
-          "*ok*\n"
+          "*ok*\n",
         ],
         "\n"
+      ),
+      %{unsafe_: true},
+      Enum.join(
+        [
+          "<![CDATA[\n",
+          "\n",
+          "hm >\n",
+          "*ok*\n",
+          "]]> *ok*\n",
+          "<p><em>ok</em></p>\n",
+        ],
+        ""
       ),
       Enum.join(
         [
@@ -249,7 +345,7 @@ defmodule MarkdownTest do
           "hm >\n",
           "*ok*\n",
           "]]> *ok*\n",
-          "<p><em>ok</em></p>"
+          "<p><em>ok</em></p>",
         ],
         ""
       )
@@ -257,7 +353,7 @@ defmodule MarkdownTest do
   end
 
   test "html block 6 html" do
-    html(
+    html2(
       Enum.join(
         [
           " </table>",
@@ -266,9 +362,20 @@ defmodule MarkdownTest do
           "ok",
           "",
           "<li",
-          "*x*"
+          "*x*",
         ],
         "\n"
+      ),
+      %{unsafe_: true},
+      Enum.join(
+        [
+          " </table>\n",
+          "*x*\n",
+          "<p>ok</p>\n",
+          "<li\n",
+          "*x*\n",
+        ],
+        ""
       ),
       Enum.join(
         [
@@ -276,7 +383,7 @@ defmodule MarkdownTest do
           "*x*\n",
           "<p>ok</p>",
           "<li\n",
-          "*x*\n"
+          "*x*\n",
         ],
         ""
       )
@@ -284,7 +391,7 @@ defmodule MarkdownTest do
   end
 
   test "html block 7 html" do
-    html(
+    html2(
       Enum.join(
         [
           "<a b >",
@@ -295,9 +402,22 @@ defmodule MarkdownTest do
           "",
           "<a b",
           "<a b> c",
-          "ok\n"
+          "ok\n",
         ],
         "\n"
+      ),
+      %{unsafe_: true},
+      Enum.join(
+        [
+          "<a b >\n",
+          "ok\n",
+          "<p>&lt;a b=&gt;\n",
+          "ok</p>\n",
+          "<p>&lt;a b\n",
+          "<a b> c\n",
+          "ok</p>\n",
+        ],
+        ""
       ),
       Enum.join(
         [
@@ -307,7 +427,7 @@ defmodule MarkdownTest do
           "ok</p>",
           "<p>&lt;a b ",
           "<a b> c ",
-          "ok</p>"
+          "ok</p>",
         ],
         ""
       )
@@ -315,19 +435,27 @@ defmodule MarkdownTest do
   end
 
   test "links" do
-    html(
+    html2(
       Enum.join(
         [
           "Where are you [going](https://microsoft.com (today))?",
           "",
-          "[Where am I?](/here)"
+          "[Where am I?](/here)",
         ],
         "\n"
+      ),
+      %{},
+      Enum.join(
+        [
+          "<p>Where are you <a href=\"https://microsoft.com\" title=\"today\">going</a>?</p>\n",
+          "<p><a href=\"/here\">Where am I?</a></p>\n",
+        ],
+        ""
       ),
       Enum.join(
         [
           "<p>Where are you <a href=\"https://microsoft.com\" title=\"today\">going</a>?</p>",
-          "<p><a href=\"/here\">Where am I?</a></p>"
+          "<p><a href=\"/here\">Where am I?</a></p>",
         ],
         ""
       )
@@ -335,16 +463,23 @@ defmodule MarkdownTest do
   end
 
   test "images" do
-    html(
+    html2(
       Enum.join(
         [
-          "I am ![eating [things](/url)](http://i.imgur.com/QqK1vq7.png).\n"
+          "I am ![eating [things](/url)](http://i.imgur.com/QqK1vq7.png).\n",
         ],
         "\n"
       ),
+      %{},
       Enum.join(
         [
-          "<p>I am <img src=\"http://i.imgur.com/QqK1vq7.png\" alt=\"eating things\"/>.</p>"
+          "<p>I am <img src=\"http://i.imgur.com/QqK1vq7.png\" alt=\"eating things\" />.</p>\n",
+        ],
+        ""
+      ),
+      Enum.join(
+        [
+          "<p>I am <img src=\"http://i.imgur.com/QqK1vq7.png\" alt=\"eating things\"/>.</p>",
         ],
         ""
       )
@@ -352,14 +487,34 @@ defmodule MarkdownTest do
   end
 
   test "tables" do
-    html(
+    html2(
       Enum.join(
         [
           "| a | b |",
           "|---|:-:|",
-          "| c | d |"
+          "| c | d |",
         ],
         "\n"
+      ),
+      %{table: true},
+      Enum.join(
+        [
+          "<table>\n",
+          "<thead>\n",
+          "<tr>\n",
+          "<th>a</th>\n",
+          "<th align=\"center\">b</th>\n",
+          "</tr>\n",
+          "</thead>\n",
+          "<tbody>\n",
+          "<tr>\n",
+          "<td>c</td>\n",
+          "<td align=\"center\">d</td>\n",
+          "</tr>\n",
+          "</tbody>\n",
+          "</table>\n",
+        ],
+        ""
       ),
       Enum.join(
         [
@@ -374,22 +529,28 @@ defmodule MarkdownTest do
           "<tr>",
           "<td>c</td>",
           "<td style=\"text-align: center;\">d</td>",
-          "</tr></tbody></table>"
+          "</tr></tbody></table>",
         ],
         ""
-      ),
-      %{table: true}
+      )
     )
   end
 
   test "hardbreaks off" do
-    html(
+    html2(
       Enum.join(
         [
           "Hello,",
           "world.",
         ],
         "\n"
+      ),
+      %{},
+      Enum.join(
+        [
+          "<p>Hello,\nworld.</p>\n",
+        ],
+        ""
       ),
       Enum.join(
         [
@@ -401,7 +562,7 @@ defmodule MarkdownTest do
   end
 
   test "hardbreaks on" do
-    html(
+    html2(
       Enum.join(
         [
           "Hello,",
@@ -409,50 +570,69 @@ defmodule MarkdownTest do
         ],
         "\n"
       ),
+      %{hardbreaks: true},
+      Enum.join(
+        [
+          "<p>Hello,<br />\n",
+          "world.</p>\n",
+        ],
+        ""
+      ),
       Enum.join(
         [
           "<p>Hello,<br>",
           "world.</p>",
         ],
         ""
-      ),
-      %{hardbreaks: true}
+      )
     )
   end
 
   test "autolink on" do
-    html(
+    html2(
       Enum.join(
         [
           "Hello abc@def.com friend",
         ],
         "\n"
+      ),
+      %{autolink: true},
+      Enum.join(
+        [
+          "<p>Hello <a href=\"mailto:abc@def.com\">abc@def.com</a> friend</p>\n",
+        ],
+        ""
       ),
       Enum.join(
         [
           "<p>Hello <a href=\"mailto:abc@def.com\">abc@def.com</a> friend</p>",
         ],
         ""
-      ),
-      %{autolink: true}
+      )
     )
   end
 
   test "autolink off" do
-    html(
+    html2(
       Enum.join(
         [
           "Hello abc@def.com friend",
         ],
         "\n"
       ),
+      %{autolink: false},
+      Enum.join(
+        [
+          "<p>Hello abc@def.com friend</p>\n",
+        ],
+        ""
+      ),
       Enum.join(
         [
           "<p>Hello abc@def.com friend</p>",
         ],
         ""
-      ),
-      %{autolink: false}
+      )
     )
   end
 end

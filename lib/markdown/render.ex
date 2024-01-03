@@ -3,10 +3,10 @@ defmodule Markdown.Render do
   alias Markdown.Renderer
 
   defmodule Context do
-    defstruct output: "", footnote_ix: 0, opts: nil, renderer: Renderer
+    defstruct output: "", footnote_ix: 0, opts: nil, renderer: nil
   end
 
-  def render({_node, _children} = root, opts \\ %{}, renderer \\ Renderer) do
+  def render({_node, _children} = root, opts = %{}, renderer) do
     context = render_node(%Context{opts: %Renderer.Options{} |> Map.merge(opts), renderer: renderer}, root)
     context.output
   end

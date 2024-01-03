@@ -132,6 +132,6 @@ defmodule Markdown.Native do
     defstruct name: ""
   end
 
-  def parse(_text, _opts), do: :erlang.nif_error(:nif_not_loaded)
-  def html(_ast, _opts), do: :erlang.nif_error(:nif_not_loaded)
+  def markdown_to_ast(_md, _opts), do: :erlang.nif_error(:nif_not_loaded)
+  def markdown_to_html(_md, _opts), do: :erlang.nif_error(:nif_not_loaded)
 end
