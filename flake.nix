@@ -30,7 +30,7 @@
         .buildRustPackage {
           # TODO: parse Cargo.toml.
           pname = "comrak_rustler";
-          version = "0.1.2";
+          version = "0.1.3";
 
           src = ./native/comrak_rustler;
 
@@ -43,7 +43,7 @@
         (beamPackages.buildMix rec {
           # TODO: as above?  Should these versions stay in step?
           name = "markdown";
-          version = "0.1.2";
+          version = "0.1.3";
 
           inherit src;
 
