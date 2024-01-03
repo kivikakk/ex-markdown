@@ -1,3 +1,8 @@
+> [!WARNING]
+> This README is currently out-of-date, but this fork isn't!
+
+---
+
 # Markdown
 
 markdown renderer for [comrak](https://github.com/kivikakk/comrak) markdown parser
