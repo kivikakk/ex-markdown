@@ -6,7 +6,7 @@ defmodule Markdown.Render do
     defstruct output: "", footnote_ix: 0, opts: nil, renderer: Renderer
   end
 
-  def render({_node, _children} = root, renderer \\ Renderer, opts \\ %{}) do
+  def render({_node, _children} = root, opts \\ %{}, renderer \\ Renderer) do
     context = render_node(%Context{opts: %Renderer.Options{} |> Map.merge(opts), renderer: renderer}, root)
     context.output
   end

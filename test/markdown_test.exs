@@ -10,8 +10,8 @@ defmodule MarkdownTest do
     end
   end
 
-  def html(text, output, renderer \\ Markdown.HtmlRenderer, opts \\ %{}) do
-    assert Markdown.render(text, renderer, opts) == output
+  def html(text, output, opts \\ %{}, renderer \\ Markdown.HtmlRenderer) do
+    assert Markdown.render(text, opts, renderer) == output
   end
 
   test "parse markdown into ast" do
@@ -68,6 +68,7 @@ defmodule MarkdownTest do
         ],
         ""
       ),
+      %{},
       TestRenderer
     )
   end
@@ -376,11 +377,12 @@ defmodule MarkdownTest do
           "</tr></tbody></table>"
         ],
         ""
-      )
+      ),
+      %{table: true}
     )
   end
 
-  test "breaks off" do
+  test "hardbreaks off" do
     html(
       Enum.join(
         [
@@ -398,7 +400,7 @@ defmodule MarkdownTest do
     )
   end
 
-  test "breaks on" do
+  test "hardbreaks on" do
     html(
       Enum.join(
         [
@@ -414,8 +416,43 @@ defmodule MarkdownTest do
         ],
         ""
       ),
-      Markdown.HtmlRenderer,
-      %{breaks: true}
+      %{hardbreaks: true}
+    )
+  end
+
+  test "autolink on" do
+    html(
+      Enum.join(
+        [
+          "Hello abc@def.com friend",
+        ],
+        "\n"
+      ),
+      Enum.join(
+        [
+          "<p>Hello <a href=\"mailto:abc@def.com\">abc@def.com</a> friend</p>",
+        ],
+        ""
+      ),
+      %{autolink: true}
+    )
+  end
+
+  test "autolink off" do
+    html(
+      Enum.join(
+        [
+          "Hello abc@def.com friend",
+        ],
+        "\n"
+      ),
+      Enum.join(
+        [
+          "<p>Hello abc@def.com friend</p>",
+        ],
+        ""
+      ),
+      %{autolink: false}
     )
   end
 end

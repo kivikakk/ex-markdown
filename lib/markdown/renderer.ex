@@ -1,6 +1,30 @@
 defmodule Markdown.Renderer do
   defmodule Options do
-    defstruct breaks: false
+    # extensions
+    defstruct strikethrough: false,
+              tagfilter: false,
+              table: false,
+              autolink: false,
+              tasklist: false,
+              superscript: false,
+              header_ids: nil,
+              footnotes: false,
+              description_lists: false,
+              front_matter_delimiter: nil,
+              # parse options
+              smart: false,
+              default_info_string: nil,
+              relaxed_tasklist_matching: false,
+              relaxed_autolinks: false,
+              # render options
+              hardbreaks: false,
+              github_pre_lang: false,
+              full_info_string: false,
+              width: 0,
+              unsafe_: false,
+              escape: false,
+              list_style: :dash,
+              sourcepos: false
   end
 
   defmacro __using__(_params) do
@@ -83,19 +107,6 @@ defmodule Markdown.Renderer do
         end
       end
 
-      def autolink(_opts, url, link_type) do
-        href =
-          case link_type do
-            "email" ->
-              "mailto:#{url}"
-
-            _ ->
-              url
-          end
-
-        "<a href=\"#{href}\">#{url}</a>"
-      end
-
       def codespan(_opts, code) do
         "<code>#{HtmlEntities.encode(code)}</code>"
       end
@@ -126,7 +137,7 @@ defmodule Markdown.Renderer do
       end
 
       def softbreak(%Options{} = opts) do
-        if opts.breaks do "<br>" else " " end
+        if opts.hardbreaks do "<br>" else " " end
       end
 
       def link(_opts, url, title, content) do
@@ -183,7 +194,6 @@ defmodule Markdown.Renderer do
                      table: 3,
                      table_row: 2,
                      table_cell: 4,
-                     autolink: 3,
                      codespan: 2,
                      double_emphasis: 2,
                      emphasis: 2,

@@ -58,7 +58,6 @@ table_cell(data, content, alignment, header)
 ### Inline
 
 ```
-autolink(data, url, link_type)
 codespan(data, code)
 double_emphasis(data, text)
 emphasis(data, text)

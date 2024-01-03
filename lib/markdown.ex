@@ -1,9 +1,9 @@
 defmodule Markdown do
-  def parse(text) do
-    Markdown.Native.parse(text)
+  def parse(text, opts \\ %{}) do
+    Markdown.Native.parse(text, %Markdown.Renderer.Options{} |> Map.merge(opts))
   end
 
-  def render(text, renderer \\ Markdown.HtmlRenderer, opts \\ %{}) do
-    Markdown.Render.render(parse(text), renderer, opts)
+  def render(text, opts \\ %{}, renderer \\ Markdown.HtmlRenderer) do
+    Markdown.Render.render(parse(text, opts), opts, renderer)
   end
 end
