@@ -16,6 +16,7 @@ defmodule Markdown.Renderer do
               default_info_string: nil,
               relaxed_tasklist_matching: false,
               relaxed_autolinks: false,
+              akkoma_autolinks: false,
               # render options
               hardbreaks: false,
               github_pre_lang: false,

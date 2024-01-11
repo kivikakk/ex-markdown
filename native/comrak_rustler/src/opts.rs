@@ -23,6 +23,7 @@ pub struct Options {
     pub default_info_string: Option<String>,
     pub relaxed_tasklist_matching: bool,
     pub relaxed_autolinks: bool,
+    pub akkoma_autolinks: bool,
     // render options
     pub hardbreaks: bool,
     pub github_pre_lang: bool,
@@ -71,6 +72,7 @@ pub(crate) fn encode(opts: Options) -> ComrakOptions {
         .default_info_string(opts.default_info_string)
         .relaxed_tasklist_matching(opts.relaxed_tasklist_matching)
         .relaxed_autolinks(opts.relaxed_autolinks)
+        .akkoma_autolinks(opts.akkoma_autolinks)
         .build()
         .unwrap();
 
@@ -90,6 +92,5 @@ pub(crate) fn encode(opts: Options) -> ComrakOptions {
         extension,
         parse,
         render,
-    }
+    };
 }
-

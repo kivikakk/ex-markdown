@@ -34,7 +34,12 @@
 
           src = ./native/comrak_rustler;
 
-          cargoLock.lockFile = ./native/comrak_rustler/Cargo.lock;
+          cargoLock = {
+            lockFile = ./native/comrak_rustler/Cargo.lock;
+            outputHashes = {
+              "comrak-0.20.0" = "sha256-ohYxmOR34NqfXyhxcYO7KBdmElEF2WasxlTEDgr/ygA=";
+            };
+          };
         };
     in rec {
       formatter = pkgs.alejandra;
@@ -62,6 +67,8 @@
           '';
         })
         .overrideAttrs (prev: {
+          LC_ALL = "en_US.UTF-8";
+
           # buildMix clobbers the input passthru entirely.
           passthru =
             prev.passthru
