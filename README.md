@@ -1,5 +1,6 @@
-> [!WARNING]
-> This README is currently out-of-date, but this fork isn't!
+> **Note**: This README is currently out-of-date, but [this fork] isn't!
+
+[this fork]: https://hrzn.ee/kivikakk/ex-markdown
 
 ---
 
